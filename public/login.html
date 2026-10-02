@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Terminal Akses — Hermes Virtual Game HQ</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            pixel: ['"Press Start 2P"', 'monospace'],
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    image-rendering: pixelated;
+    .pixel-border {
+      box-shadow: 
+        inset -2px -2px 0px 0px #090a10,
+        inset 2px 2px 0px 0px #2a3454;
+    }
+    .pixel-btn {
+      box-shadow: 
+        inset -2px -2px 0px 0px #090a10,
+        inset 2px 2px 0px 0px #415180;
+    }
+    .pixel-btn:active {
+      transform: translate(1px, 1px);
+      box-shadow: 
+        inset 2px 2px 0px 0px #090a10,
+        inset -2px -2px 0px 0px #415180;
+    }
+  </style>
+</head>
+<body class="bg-[#05060a] text-slate-100 font-sans min-h-screen flex flex-col justify-center items-center p-4 selection:bg-indigo-500 selection:text-white select-none">
+
+  <!-- Ambient Retro Background -->
+  <div class="fixed inset-0 overflow-hidden pointer-events-none">
+    <div class="absolute top-1/3 left-1/2 -translate-x-1/2 w-[600px] h-[350px] bg-cyan-600/[0.04] rounded-full blur-[130px]"></div>
+  </div>
+
+  <div class="relative w-full max-w-[440px] z-10">
+    
+    <!-- Retro Pixel Banner -->
+    <div class="text-center mb-6">
+      <!-- Animated Canvas Avatar Box -->
+      <div class="inline-flex flex-col items-center justify-center p-3 rounded-2xl bg-[#090d18] border-2 border-indigo-500/40 mb-3 shadow-xl">
+        <canvas id="loginAvatarCanvas" width="64" height="64" class="block"></canvas>
+      </div>
+
+      <h1 class="font-pixel text-xs text-white tracking-widest uppercase">HERMES VIRTUAL HQ</h1>
+      <p class="text-[10px] text-indigo-400 font-mono mt-1">TERMINAL LOGIN • ENTERPRISE UNIFIED AUTH</p>
+    </div>
+
+    <!-- Login Box Card -->
+    <div class="bg-[#0a0d18] border-2 border-slate-800 rounded-2xl p-6 sm:p-7 shadow-2xl relative">
+      
+      <div class="flex items-center justify-between pb-3 mb-5 border-b border-slate-800/80">
+        <div>
+          <h2 class="text-xs font-pixel text-slate-200">IDENTIFIKASI AGEN</h2>
+          <p class="text-[11px] text-slate-400 font-mono mt-0.5">Satu akun untuk seluruh aplikasi</p>
+        </div>
+        <span class="px-2 py-0.5 rounded text-[9px] font-mono bg-indigo-500/10 text-indigo-300 border border-indigo-500/30">
+          PORT :3200
+        </span>
+      </div>
+
+      <!-- Alert Box -->
+      <div id="alertBox" class="hidden mb-4 p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs font-mono flex items-center gap-2">
+        <span>⚠️</span>
+        <span id="alertMsg">Kredensial tidak valid.</span>
+      </div>
+
+      <form id="pixelLoginForm" onsubmit="handlePixelLogin(event)" class="space-y-4">
+        
+        <!-- Email Input -->
+        <div>
+          <label class="block text-[10px] font-pixel text-slate-400 mb-1.5">EMAIL AKUN</label>
+          <input 
+            type="email" 
+            id="emailInput"
+            required
+            autocomplete="email"
+            value="fauziramdani0112@gmail.com"
+            placeholder="ceo@enterprise.com"
+            class="w-full bg-[#060810] border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500 font-mono"
+          />
+        </div>
+
+        <!-- Password Input -->
+        <div>
+          <div class="flex items-center justify-between mb-1.5">
+            <label class="block text-[10px] font-pixel text-slate-400">KATA SANDI</label>
+            <span class="text-[9px] text-slate-500 font-mono">Bcrypt Check</span>
+          </div>
+
+          <div class="relative">
+            <input 
+              type="password" 
+              id="passwordInput"
+              required
+              autocomplete="current-password"
+              placeholder="••••••••••••"
+              class="w-full bg-[#060810] border border-slate-800 rounded-xl pl-3.5 pr-10 py-2.5 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500 font-mono"
+            />
+            <button 
+              type="button" 
+              onclick="togglePwdVisibility()"
+              class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-200 cursor-pointer"
+              title="Toggle Password"
+            >
+              <span id="pwdEye">👁️</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Submit Button -->
+        <button 
+          type="submit" 
+          id="submitBtn"
+          class="w-full py-3 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-white font-pixel text-[10px] tracking-wider transition-all shadow-lg shadow-indigo-950/40 flex items-center justify-center gap-2 cursor-pointer mt-2"
+        >
+          <span id="btnText">MASUK KE HQ</span>
+          <span id="btnSpinner" class="hidden animate-spin">⚡</span>
+        </button>
+
+      </form>
+
+      <!-- Alternate App Links -->
+      <div class="mt-6 pt-4 border-t border-slate-800/80 flex items-center justify-between text-[11px] font-mono text-slate-500">
+        <a href="http://100.113.149.92:3000/login" class="hover:text-indigo-400 transition-colors">🏢 App Center :3000</a>
+        <span>•</span>
+        <a href="http://100.113.149.92:3100/login" class="hover:text-indigo-400 transition-colors">⚡ AI Studio :3100</a>
+      </div>
+
+    </div>
+
+    <!-- Retro Footer -->
+    <p class="text-center text-[10px] text-slate-500 mt-5 font-mono">
+      Global SSO Cookie Active • Logout Serentak Tersinkronisasi
+    </p>
+
+  </div>
+
+  <script>
+    // Web Audio Synthesizer
+    let audioCtx = null;
+    function playRetroBeep(freq = 440, type = 'square', duration = 0.08) {
+      try {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + duration);
+      } catch(e) {}
+    }
+
+    // Toggle Password Visibility
+    let isPwdVisible = false;
+    function togglePwdVisibility() {
+      const input = document.getElementById('passwordInput');
+      const eye = document.getElementById('pwdEye');
+      isPwdVisible = !isPwdVisible;
+      input.type = isPwdVisible ? 'text' : 'password';
+      eye.innerText = isPwdVisible ? '🙈' : '👁️';
+      playRetroBeep(600, 'sine', 0.05);
+    }
+
+    // Animated Pixel Sprite on Login Box
+    const canvas = document.getElementById('loginAvatarCanvas');
+    const ctx = canvas.getContext('2d');
+    let avatarTicks = 0;
+
+    function renderLoginAvatar() {
+      avatarTicks++;
+      ctx.clearRect(0, 0, 64, 64);
+
+      const bob = Math.sin(avatarTicks * 0.1) * 2;
+      const x = 32;
+      const y = 30 + bob;
+      const px = x - 12;
+      const py = y - 18;
+
+      // Dark Blue Hair
+      ctx.fillStyle = '#3b82f6';
+      ctx.fillRect(px + 4, py, 16, 8);
+      ctx.fillRect(px + 2, py + 4, 20, 6);
+
+      // Skin
+      ctx.fillStyle = '#fbd38d';
+      ctx.fillRect(px + 4, py + 8, 16, 12);
+
+      // Eyes (Blink)
+      const isBlink = (avatarTicks % 100) > 95;
+      ctx.fillStyle = '#0f172a';
+      if (!isBlink) {
+        ctx.fillRect(px + 7, py + 11, 3, 3);
+        ctx.fillRect(px + 14, py + 11, 3, 3);
+      } else {
+        ctx.fillRect(px + 7, py + 12, 3, 1);
+        ctx.fillRect(px + 14, py + 12, 3, 1);
+      }
+
+      // Suit
+      ctx.fillStyle = '#1e293b';
+      ctx.fillRect(px + 2, py + 20, 20, 16);
+
+      // Gold Tie
+      ctx.fillStyle = '#fbbf24';
+      ctx.fillRect(px + 11, py + 20, 2, 10);
+
+      requestAnimationFrame(renderLoginAvatar);
+    }
+
+    async function handlePixelLogin(e) {
+      e.preventDefault();
+      const email = document.getElementById('emailInput').value.trim();
+      const password = document.getElementById('passwordInput').value;
+      const alertBox = document.getElementById('alertBox');
+      const alertMsg = document.getElementById('alertMsg');
+      const btnText = document.getElementById('btnText');
+      const btnSpinner = document.getElementById('btnSpinner');
+      const submitBtn = document.getElementById('submitBtn');
+
+      alertBox.classList.add('hidden');
+      btnText.innerText = 'MEMVERIFIKASI...';
+      btnSpinner.classList.remove('hidden');
+      submitBtn.disabled = true;
+      playRetroBeep(520, 'square', 0.05);
+
+      try {
+        const res = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+
+        const data = await res.json();
+
+        if (data.success) {
+          playRetroBeep(780, 'triangle', 0.15);
+          btnText.innerText = 'AKSES DITERIMA!';
+          
+          const urlParams = new URLSearchParams(window.location.search);
+          const redirectTarget = urlParams.get('redirect');
+
+          setTimeout(() => {
+            if (redirectTarget && redirectTarget.startsWith('http')) {
+              window.location.href = redirectTarget;
+            } else {
+              window.location.href = '/';
+            }
+          }, 350);
+        } else {
+          playRetroBeep(220, 'sawtooth', 0.2);
+          alertMsg.innerText = data.error || 'Email atau kata sandi tidak cocok.';
+          alertBox.classList.remove('hidden');
+          btnText.innerText = 'MASUK KE HQ';
+          btnSpinner.classList.add('hidden');
+          submitBtn.disabled = false;
+        }
+      } catch (err) {
+        alertMsg.innerText = 'Gagal menghubungi server: ' + err.message;
+        alertBox.classList.remove('hidden');
+        btnText.innerText = 'MASUK KE HQ';
+        btnSpinner.classList.add('hidden');
+        submitBtn.disabled = false;
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      renderLoginAvatar();
+    });
+  </script>
+</body>
+</html>

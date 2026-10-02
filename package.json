@@ -1,0 +1,20 @@
+{
+  "name": "hermes-3d-hq",
+  "version": "1.0.0",
+  "description": "Hermes 3D Spatial Digital Twin Operations Center",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "test": "node test-telemetry.js"
+  },
+  "dependencies": {
+    "better-sqlite3": "^11.8.1",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "express": "^4.21.2",
+    "three": "^0.186.1"
+  },
+  "author": "Fauzi Ramdani Enterprise & Hermes AI Architecture Team",
+  "license": "ISC"
+}

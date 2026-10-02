@@ -1,0 +1,1254 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Fauzi Ramdani Enterprise — Hermes 3D Spatial Digital Twin HQ</title>
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Import Map for Native Three.js Modules -->
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "/vendor/three.module.js",
+      "three/addons/": "/vendor/"
+    }
+  }
+  </script>
+
+  <style>
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #080a11; }
+    ::-webkit-scrollbar-thumb { background: #1e263d; border-radius: 6px; }
+    ::-webkit-scrollbar-thumb:hover { background: #334168; }
+    html, body { overflow: hidden !important; width: 100vw; height: 100vh; margin: 0; padding: 0; }
+    .glass-panel {
+      background: rgba(13, 17, 28, 0.85);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    #threeCanvas { width: 100%; height: 100%; display: block; outline: none; }
+  </style>
+</head>
+<body class="bg-[#05070c] text-slate-100 font-sans select-none overflow-hidden relative w-full h-full">
+
+  <!-- TOP APP BAR -->
+  <header class="h-14 bg-[#090c16]/90 border-b border-slate-800/80 px-4 flex items-center justify-between absolute top-0 left-0 right-0 z-30 backdrop-blur-md">
+    <div class="flex items-center gap-3">
+      <div class="h-9 w-9 rounded-xl bg-gradient-to-br from-indigo-500 to-indigo-700 flex items-center justify-center text-white font-bold text-xs shadow-md shadow-indigo-500/20">
+        3D
+      </div>
+      <div>
+        <div class="flex items-center gap-2">
+          <h1 class="font-bold text-xs sm:text-sm text-white tracking-wide">Hermes 3D Spatial Studio</h1>
+          <span class="px-2 py-0.5 rounded-full text-[10px] font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 flex items-center gap-1.5 font-medium">
+            <span class="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-ping"></span> 5 AGENTS ONLINE
+          </span>
+        </div>
+        <p class="text-[11px] text-slate-400 font-sans hidden sm:block">Low-Poly WebGL Spatial Digital Twin · Port :3500</p>
+      </div>
+    </div>
+
+    <!-- Quick Navigation & Modals -->
+    <div class="flex items-center gap-2">
+      <!-- Camera View Reset -->
+      <button 
+        id="cameraResetBtn"
+        class="h-9 px-3 rounded-xl bg-slate-900/90 border border-slate-800 hover:border-slate-700 text-xs font-mono text-slate-300 flex items-center gap-1.5 cursor-pointer transition-colors"
+        title="Reset Camera View to Isometric"
+      >
+        <span>🎥</span>
+        <span class="hidden sm:inline text-[11px]">Reset View</span>
+      </button>
+
+      <!-- Kanban Button -->
+      <button 
+        onclick="openKanbanModal()"
+        class="h-9 px-3 rounded-xl bg-slate-900/90 border border-slate-800 hover:border-indigo-500/50 text-xs font-mono text-indigo-300 flex items-center gap-1.5 cursor-pointer transition-colors"
+      >
+        <span>📋</span>
+        <span class="text-[11px]">Kanban</span>
+      </button>
+
+      <!-- Cron Button -->
+      <button 
+        onclick="openCronModal()"
+        class="h-9 px-3 rounded-xl bg-slate-900/90 border border-slate-800 hover:border-cyan-500/50 text-xs font-mono text-cyan-300 flex items-center gap-1.5 cursor-pointer transition-colors"
+      >
+        <span>⏰</span>
+        <span class="text-[11px]">Cron</span>
+      </button>
+
+      <!-- Switch to 2D Office -->
+      <a 
+        href="http://100.113.149.92:3200" 
+        target="_blank"
+        class="hidden lg:flex h-9 px-3 rounded-xl bg-slate-900/90 border border-slate-800 hover:border-amber-500/50 text-amber-300 text-xs font-mono items-center gap-1.5 transition-colors"
+        title="Buka Kantor 2D Klasik"
+      >
+        <span>🕹️</span>
+        <span class="text-[11px]">2D Office :3200</span>
+      </a>
+
+      <!-- App Center Link -->
+      <a 
+        href="http://100.113.149.92:3000" 
+        target="_blank"
+        class="hidden md:flex h-9 px-3 rounded-xl bg-slate-900/90 border border-slate-800 hover:border-indigo-500/50 text-indigo-300 text-xs font-mono items-center gap-1.5 transition-colors"
+        title="Buka Enterprise App Center"
+      >
+        <span>🏢</span>
+        <span class="text-[11px]">Portal :3000</span>
+      </a>
+
+      <!-- User Profile HUD -->
+      <div id="userHeaderBadge" class="hidden sm:flex items-center gap-2 bg-slate-900/90 border border-slate-800 px-3 h-9 rounded-xl text-xs font-mono text-amber-300">
+        <span>👑</span>
+        <span id="ceoHeaderName" class="font-semibold text-white truncate max-w-[100px]">Fauzi</span>
+      </div>
+
+      <!-- Logout Button -->
+      <button 
+        onclick="handleGlobalLogout()"
+        class="h-9 px-3 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 text-rose-300 text-xs font-mono transition-colors flex items-center gap-1 cursor-pointer"
+        title="Logout dari seluruh sistem enterprise"
+      >
+        <span>🚪</span>
+        <span class="hidden sm:inline text-[11px]">Keluar</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- TELEMETRY & CAMERA HUD BAR -->
+  <div class="bg-[#0b0f1c]/90 border-b border-slate-800/80 px-4 py-2.5 flex items-center justify-between overflow-x-auto no-scrollbar gap-4 absolute top-14 left-0 right-0 z-20 backdrop-blur-md">
+    <div class="flex items-center gap-3 shrink-0">
+      <span class="text-xs font-mono text-slate-400 font-semibold flex items-center gap-1.5">
+        <span class="h-2 w-2 rounded-full bg-cyan-400"></span> 3D FLEET:
+      </span>
+      
+      <!-- Working Badge -->
+      <div class="flex items-center gap-2 px-3 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-mono">
+        <span class="h-2 w-2 rounded-full bg-emerald-400 animate-pulse"></span>
+        <span id="badgeWorkingCount" class="font-bold">0</span> Working
+      </div>
+
+      <!-- Idle Badge -->
+      <div class="flex items-center gap-2 px-3 py-1 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs font-mono">
+        <span class="h-2 w-2 rounded-full bg-amber-400"></span>
+        <span id="badgeIdleCount" class="font-bold">5</span> Lounge Rehat
+      </div>
+
+      <!-- Kanban Tasks Count -->
+      <div class="hidden sm:flex items-center gap-2 px-3 py-1 rounded-lg bg-indigo-500/10 border border-indigo-500/30 text-indigo-300 text-xs font-mono cursor-pointer hover:border-indigo-400 transition-colors" onclick="openKanbanModal()">
+        <span>📋</span>
+        <span id="badgeKanbanSummary">Kanban: 27 Done</span>
+      </div>
+
+      <!-- Cron Status -->
+      <div class="hidden md:flex items-center gap-2 px-3 py-1 rounded-lg bg-cyan-500/10 border border-cyan-500/30 text-cyan-300 text-xs font-mono cursor-pointer hover:border-cyan-400 transition-colors" onclick="openCronModal()">
+        <span>⏰</span>
+        <span id="badgeCronStatus">Cron: RUNNING</span>
+      </div>
+    </div>
+
+    <!-- Agent Quick Selector Pills with 3D Camera Orbit Focus -->
+    <div class="flex items-center gap-2 shrink-0" id="agentQuickTabs">
+      <!-- Injected dynamically -->
+    </div>
+  </div>
+
+  <!-- THREE.JS 3D CANVAS VIEWPORT -->
+  <main class="w-full h-full relative z-0">
+    <canvas id="threeCanvas"></canvas>
+
+    <!-- 3D Interactive Tooltip -->
+    <div 
+      id="objectTooltip" 
+      class="pointer-events-none hidden absolute px-3.5 py-2 rounded-xl glass-panel text-xs text-white shadow-2xl z-30 -translate-x-1/2 -translate-y-full transition-all duration-100"
+    >
+      <div id="tooltipTitle" class="font-bold text-indigo-300 flex items-center gap-1.5"></div>
+      <div id="tooltipSub" class="text-[11px] text-slate-300 font-mono mt-0.5"></div>
+    </div>
+
+    <!-- 3D Navigation Controls Hint Overlay -->
+    <div class="absolute bottom-4 left-4 z-20 hidden sm:flex items-center gap-3 px-3.5 py-2 rounded-xl glass-panel text-xs font-mono text-slate-300 shadow-xl">
+      <span class="text-indigo-400 font-bold">🎮 KONTROL 3D:</span>
+      <span>Klik kiri + Drag untuk Orbit · Scroll / Pinch untuk Zoom · Klik kanan untuk Pan · Klik objek untuk interaksi</span>
+    </div>
+
+    <div class="absolute bottom-4 right-4 z-20 flex items-center gap-2 px-3 py-1.5 rounded-xl glass-panel text-xs font-mono text-slate-400 shadow-xl">
+      <span class="h-2 w-2 rounded-full bg-emerald-400 animate-pulse"></span>
+      <span id="syncTimestamp">Telemetri Realtime</span>
+    </div>
+  </main>
+
+  <!-- ========================================== -->
+  <!-- MODAL 1: AGILE KANBAN BOARD                -->
+  <!-- ========================================== -->
+  <div id="kanbanModal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 hidden flex items-center justify-center p-3 sm:p-6" onclick="closeOnBackdrop(event, 'kanbanModal')">
+    <div class="bg-[#0d111e] border border-slate-800 rounded-3xl max-w-3xl w-full max-h-[85vh] flex flex-col shadow-2xl overflow-hidden" onclick="event.stopPropagation()">
+      <div class="p-5 border-b border-slate-800/80 flex items-center justify-between bg-slate-900/60">
+        <div class="flex items-center gap-3">
+          <div class="h-10 w-10 rounded-2xl bg-indigo-500/20 border border-indigo-500/40 flex items-center justify-center text-indigo-400 text-lg">📋</div>
+          <div>
+            <h3 class="font-bold text-sm text-white">Hermes Agile Kanban War Room (3D Connected)</h3>
+            <p class="text-xs text-slate-400 font-mono">Papan Tugas Terintegrasi SQLite (/home/yes/.hermes/kanban)</p>
+          </div>
+        </div>
+        <button onclick="closeKanbanModal()" class="h-9 w-9 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center font-mono cursor-pointer transition-colors">✕</button>
+      </div>
+
+      <div class="px-5 py-3 bg-[#090d18] border-b border-slate-800/80 flex items-center gap-3 overflow-x-auto text-xs font-mono">
+        <span class="text-slate-400">Ringkasan Sprint:</span>
+        <span class="px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">27 Selesai</span>
+        <span class="px-2.5 py-1 rounded-lg bg-amber-500/10 text-amber-400 border border-amber-500/30">0 In Progress</span>
+        <span class="px-2.5 py-1 rounded-lg bg-indigo-500/10 text-indigo-400 border border-indigo-500/30">0 Ready</span>
+      </div>
+
+      <div class="p-5 flex-1 overflow-y-auto space-y-3" id="kanbanTasksList">
+        <div class="text-center text-slate-500 py-8 font-mono text-xs">Memuat tugas kanban...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- MODAL 2: CRON & AUTOMATION TOWER           -->
+  <!-- ========================================== -->
+  <div id="cronModal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 hidden flex items-center justify-center p-3 sm:p-6" onclick="closeOnBackdrop(event, 'cronModal')">
+    <div class="bg-[#0d111e] border border-slate-800 rounded-3xl max-w-2xl w-full max-h-[85vh] flex flex-col shadow-2xl overflow-hidden" onclick="event.stopPropagation()">
+      <div class="p-5 border-b border-slate-800/80 flex items-center justify-between bg-slate-900/60">
+        <div class="flex items-center gap-3">
+          <div class="h-10 w-10 rounded-2xl bg-cyan-500/20 border border-cyan-500/40 flex items-center justify-center text-cyan-400 text-lg">⏰</div>
+          <div>
+            <h3 class="font-bold text-sm text-white">Automation & Cron Scheduler</h3>
+            <p class="text-xs text-slate-400 font-mono">Hermes Background Ticker & Scheduled Jobs (~/.hermes/cron)</p>
+          </div>
+        </div>
+        <button onclick="closeCronModal()" class="h-9 w-9 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center font-mono cursor-pointer transition-colors">✕</button>
+      </div>
+
+      <div class="p-5 flex-1 overflow-y-auto space-y-4 font-mono text-xs" id="cronContent">
+        <!-- Injected dynamically -->
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- AGENT INSPECTOR & DIRECT CHAT DRAWER       -->
+  <!-- ========================================== -->
+  <div id="chatBackdrop" class="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 hidden" onclick="closeChatDrawer()"></div>
+  <div 
+    id="chatDrawer" 
+    class="fixed right-0 top-0 bottom-0 w-full sm:w-[440px] bg-[#0c101c] border-l border-slate-800 z-50 transform translate-x-full transition-transform duration-300 flex flex-col shadow-2xl"
+  >
+    <div class="p-5 border-b border-slate-800/80 flex items-center justify-between bg-[#080b14]/90">
+      <div class="flex items-center gap-3">
+        <div id="chatAgentAvatar" class="h-11 w-11 rounded-2xl bg-indigo-600/20 border border-indigo-500/40 flex items-center justify-center text-xl">🤖</div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h3 id="chatAgentName" class="font-bold text-white text-sm">Agent Name</h3>
+            <span id="chatAgentBadge" class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-slate-800 border border-slate-700 text-slate-300">Profile</span>
+          </div>
+          <p id="chatAgentRole" class="text-xs text-slate-400 font-mono">Role Description</p>
+        </div>
+      </div>
+      <button onclick="closeChatDrawer()" class="h-8 w-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center font-mono cursor-pointer">✕</button>
+    </div>
+
+    <!-- Agent Live Telemetry Card -->
+    <div class="p-4 bg-slate-900/60 border-b border-slate-800/80 font-mono text-xs space-y-2.5">
+      <div class="flex items-center justify-between">
+        <span class="text-slate-400">Status Operasional:</span>
+        <span id="chatAgentStatus" class="font-bold text-emerald-400">WORKING</span>
+      </div>
+      <div class="flex items-center justify-between">
+        <span class="text-slate-400">Lokasi / Area 3D:</span>
+        <span id="chatAgentZone" class="text-indigo-300">Zona 1: Meja Kerja 3D</span>
+      </div>
+      <div class="flex items-center justify-between">
+        <span class="text-slate-400">Aktivitas Terkini:</span>
+        <span id="chatAgentActivity" class="text-slate-200 truncate max-w-[220px]">Eksekusi prompt</span>
+      </div>
+      <div class="flex items-center justify-between">
+        <span class="text-slate-400">Telegram Bot:</span>
+        <span id="chatAgentTelegram" class="text-cyan-400 font-semibold">@my_kagura_bot</span>
+      </div>
+    </div>
+
+    <!-- Chat Messages Feed -->
+    <div class="flex-1 overflow-y-auto p-4 space-y-3.5" id="chatMessages">
+      <div class="flex gap-3 items-start">
+        <div class="h-8 w-8 rounded-xl bg-indigo-600/20 border border-indigo-500/40 flex items-center justify-center text-xs shrink-0 text-indigo-400 font-bold">🤖</div>
+        <div class="flex-1 bg-slate-900 border border-slate-800 rounded-2xl rounded-tl-sm p-4 text-slate-200 text-xs leading-relaxed font-sans shadow-sm">
+          <p id="chatWelcomeText">Halo Mas Fauzi! Saya siap menerima instruksi langsung untuk sistem enterprise dalam ruang 3D.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Typing Indicator -->
+    <div id="typingIndicator" class="px-4 py-2.5 bg-indigo-950/30 border-t border-indigo-500/20 flex items-center gap-2 text-indigo-400 font-mono text-xs hidden">
+      <span class="h-2 w-2 rounded-full bg-indigo-400 animate-ping"></span>
+      <span id="typingAgentText">Agent sedang memproses instruksi via Hermes...</span>
+    </div>
+
+    <!-- Chat Input Form -->
+    <form onsubmit="handleSendMessage(event)" class="p-3.5 border-t border-slate-800/80 bg-[#080b14] flex gap-2">
+      <input 
+        id="chatInput" 
+        type="text" 
+        placeholder="Ketik instruksi langsung untuk agen ini..."
+        class="flex-1 bg-slate-900 border border-slate-800 focus:border-indigo-500 rounded-xl px-4 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none font-sans transition-colors"
+        autocomplete="off"
+      />
+      <button 
+        type="submit" 
+        class="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs transition-colors flex items-center gap-1 shadow-md shadow-indigo-950/50 cursor-pointer"
+      >
+        <span>Kirim</span>
+      </button>
+    </form>
+  </div>
+
+  <!-- THREE.JS 3D SCENE & ENGINE SCRIPT -->
+  <script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from 'three/addons/OrbitControls.js';
+
+    // Global State
+    let agents = [];
+    let agentMeshes = {};
+    let telemetryData = null;
+    let selectedAgent = null;
+    let hoveredObject = null;
+
+    // Three.js Core Globals
+    let scene, camera, renderer, controls;
+    let raycaster, mouse;
+    let targetCameraPos = null;
+    let targetLookAt = null;
+
+    const canvas = document.getElementById('threeCanvas');
+
+    // 1. Initialize 3D Scene
+    function init3D() {
+      // Scene
+      scene = new THREE.Scene();
+      scene.background = new THREE.Color(0x060810);
+      scene.fog = new THREE.FogExp2(0x060810, 0.012);
+
+      // Camera: Isometric Perspective
+      const aspect = window.innerWidth / window.innerHeight;
+      camera = new THREE.PerspectiveCamera(40, aspect, 0.1, 1000);
+      camera.position.set(38, 32, 42); // Classic high-angle isometric vantage
+
+      // Renderer
+      renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false, powerPreference: 'high-performance' });
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      renderer.shadowMap.enabled = true;
+      renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+      // Controls
+      controls = new OrbitControls(camera, renderer.domElement);
+      controls.enableDamping = true;
+      controls.dampingFactor = 0.05;
+      controls.maxPolarAngle = Math.PI / 2.05; // Never clip under floor
+      controls.minDistance = 15;
+      controls.maxDistance = 90;
+      controls.target.set(0, 0, 0);
+
+      // Raycaster for object clicks & hovers
+      raycaster = new THREE.Raycaster();
+      mouse = new THREE.Vector2();
+
+      // Lighting Setup (Warm Ambient + Studio Accents)
+      setupLighting();
+
+      // Build Architecture & Interior
+      buildStudioFloor();
+      buildZone1Workstations();
+      buildZone2KanbanWarRoom();
+      buildZone3RecreationLounge();
+      buildZone4CronTower();
+      buildPottedPlants();
+
+      // Event Listeners
+      window.addEventListener('resize', onWindowResize);
+      canvas.addEventListener('mousemove', onMouseMove);
+      canvas.addEventListener('click', onCanvasClick);
+      document.getElementById('cameraResetBtn').addEventListener('click', resetCameraView);
+
+      // Start Animation Loop
+      animate();
+    }
+
+    // 2. Studio Lighting
+    function setupLighting() {
+      // Hemisphere Light (Sky: Slate Blue, Ground: Dark Walnut)
+      const hemiLight = new THREE.HemisphereLight(0x94a3b8, 0x1e1b2e, 0.6);
+      scene.add(hemiLight);
+
+      // Main Sun / Directional Light (Soft Studio Cast)
+      const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+      dirLight.position.set(30, 45, 25);
+      dirLight.castShadow = true;
+      dirLight.shadow.mapSize.width = 2048;
+      dirLight.shadow.mapSize.height = 2048;
+      dirLight.shadow.camera.near = 10;
+      dirLight.shadow.camera.far = 100;
+      dirLight.shadow.camera.left = -35;
+      dirLight.shadow.camera.right = 35;
+      dirLight.shadow.camera.top = 35;
+      dirLight.shadow.camera.bottom = -35;
+      dirLight.shadow.bias = -0.001;
+      scene.add(dirLight);
+
+      // Accent Warm Light at Recreation Lounge
+      const loungeLight = new THREE.PointLight(0xf59e0b, 1.2, 25);
+      loungeLight.position.set(15, 6, 12);
+      scene.add(loungeLight);
+
+      // Accent Cyan Light at Cron Tower
+      const cronLight = new THREE.PointLight(0x06b6d4, 1.4, 25);
+      cronLight.position.set(15, 7, -12);
+      scene.add(cronLight);
+
+      // Accent Indigo Light at Kanban Board
+      const kanbanLight = new THREE.PointLight(0x6366f1, 1.2, 25);
+      kanbanLight.position.set(-14, 6, -14);
+      scene.add(kanbanLight);
+    }
+
+    // 3. Studio Architecture (Floor & Dividers)
+    function buildStudioFloor() {
+      // Floor Slab
+      const floorGeo = new THREE.BoxGeometry(64, 1, 56);
+      const floorMat = new THREE.MeshStandardMaterial({
+        color: 0x0f1422,
+        roughness: 0.7,
+        metalness: 0.1
+      });
+      const floor = new THREE.Mesh(floorGeo, floorMat);
+      floor.position.y = -0.5;
+      floor.receiveShadow = true;
+      scene.add(floor);
+
+      // Grid Tiles Texture / Border Accents
+      const grid = new THREE.GridHelper(60, 30, 0x1e293b, 0x131929);
+      grid.position.y = 0.02;
+      scene.add(grid);
+
+      // Outer Perimeter Low Wall / Curb
+      const wallMat = new THREE.MeshStandardMaterial({ color: 0x1e2538, roughness: 0.5 });
+      const wallNorth = new THREE.Mesh(new THREE.BoxGeometry(64, 1.2, 0.8), wallMat);
+      wallNorth.position.set(0, 0.6, -28);
+      scene.add(wallNorth);
+
+      const wallWest = new THREE.Mesh(new THREE.BoxGeometry(0.8, 1.2, 56), wallMat);
+      wallWest.position.set(-32, 0.6, 0);
+      scene.add(wallWest);
+
+      // Frosted Glass Divider Between Left (Work/Kanban) and Right (Lounge/Cron)
+      const glassMat = new THREE.MeshPhysicalMaterial({
+        color: 0x64748b,
+        transparent: true,
+        opacity: 0.25,
+        roughness: 0.1,
+        transmission: 0.6,
+        thickness: 0.5
+      });
+      const divider = new THREE.Mesh(new THREE.BoxGeometry(0.4, 2.5, 46), glassMat);
+      divider.position.set(0.5, 1.25, 0);
+      scene.add(divider);
+
+      // Transverse divider
+      const divider2 = new THREE.Mesh(new THREE.BoxGeometry(56, 2.5, 0.4), glassMat);
+      divider2.position.set(0, 1.25, 0);
+      scene.add(divider2);
+    }
+
+    // 4. Zone 1: Workstation Desks (Bottom-Left)
+    function buildZone1Workstations() {
+      // 5 Engineer Desks Coordinates in 3D Space (X: -26 to -5, Z: 5 to 22)
+      const deskConfigs = [
+        { id: 'default', x: -18, z: 8, name: 'Kagura (Architect)' },
+        { id: 'agent-d', x: -8, z: 8, name: 'Agent D (Frontend)' },
+        { id: 'agent-a', x: -22, z: 18, name: 'Agent A (QA & Security)' },
+        { id: 'agent-b', x: -12, z: 18, name: 'Agent B (UI/UX)' },
+        { id: 'agent-c', x: -2, z: 18, name: 'Agent C (AI Engine)' }
+      ];
+
+      deskConfigs.forEach(d => {
+        const deskGroup = new THREE.Group();
+        deskGroup.position.set(d.x, 0, d.z);
+        deskGroup.name = `Desk_${d.id}`;
+        deskGroup.userData = { type: 'desk', agentId: d.id, name: d.name };
+
+        // Table Top (Dark Walnut)
+        const tableTop = new THREE.Mesh(
+          new THREE.BoxGeometry(5.2, 0.2, 3),
+          new THREE.MeshStandardMaterial({ color: 0x1e2638, roughness: 0.4 })
+        );
+        tableTop.position.y = 2.1;
+        tableTop.castShadow = true;
+        tableTop.receiveShadow = true;
+        deskGroup.add(tableTop);
+
+        // Legs (Steel frame)
+        const legMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, metalness: 0.8, roughness: 0.3 });
+        [[-2.4, -1.3], [2.4, -1.3], [-2.4, 1.3], [2.4, 1.3]].forEach(([lx, lz]) => {
+          const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 2.1), legMat);
+          leg.position.set(lx, 1.05, lz);
+          deskGroup.add(leg);
+        });
+
+        // Dual Curved Monitors
+        const monitorMat = new THREE.MeshStandardMaterial({ color: 0x090d16, roughness: 0.2 });
+        const screenMat = new THREE.MeshBasicMaterial({ color: 0x38bdf8 });
+
+        [-1, 1].forEach(side => {
+          const stand = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 0.7), legMat);
+          stand.position.set(side * 1.3, 2.45, -0.6);
+          deskGroup.add(stand);
+
+          const frame = new THREE.Mesh(new THREE.BoxGeometry(1.8, 1.1, 0.1), monitorMat);
+          frame.position.set(side * 1.3, 2.9, -0.6);
+          frame.rotation.y = side * -0.15; // Curved angle
+          deskGroup.add(frame);
+
+          const screen = new THREE.Mesh(new THREE.PlaneGeometry(1.65, 0.95), screenMat);
+          screen.position.set(side * 1.3, 2.9, -0.54);
+          screen.rotation.y = side * -0.15;
+          deskGroup.add(screen);
+        });
+
+        // Ergonomic Chair
+        const chairSeat = new THREE.Mesh(
+          new THREE.BoxGeometry(1.4, 0.15, 1.4),
+          new THREE.MeshStandardMaterial({ color: 0x0f172a })
+        );
+        chairSeat.position.set(0, 1.3, 1.4);
+        deskGroup.add(chairSeat);
+
+        const chairBack = new THREE.Mesh(
+          new THREE.BoxGeometry(1.4, 1.4, 0.15),
+          new THREE.MeshStandardMaterial({ color: 0x1e293b })
+        );
+        chairBack.position.set(0, 2.0, 2.0);
+        deskGroup.add(chairBack);
+
+        // Desk Lamp with Glow
+        const lamp = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.15, 0.6), legMat);
+        lamp.position.set(2.1, 2.4, -0.6);
+        deskGroup.add(lamp);
+
+        scene.add(deskGroup);
+      });
+    }
+
+    // 5. Zone 2: Agile Kanban War Room (Top-Left)
+    function buildZone2KanbanWarRoom() {
+      const kanbanGroup = new THREE.Group();
+      kanbanGroup.position.set(-15, 0, -15);
+      kanbanGroup.name = 'Zone_Kanban';
+      kanbanGroup.userData = { type: 'kanban', title: 'Agile Kanban War Room', desc: 'Klik untuk membuka papan tugas SQLite' };
+
+      // Big Glass Whiteboard on Wall
+      const boardBack = new THREE.Mesh(
+        new THREE.BoxGeometry(18, 7, 0.3),
+        new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.2 })
+      );
+      boardBack.position.set(0, 5, -10.5);
+      kanbanGroup.add(boardBack);
+
+      // Kanban Columns Strips
+      const colColors = [0x64748b, 0x38bdf8, 0xf59e0b, 0xec4899, 0x10b981];
+      colColors.forEach((color, idx) => {
+        const cx = -6.8 + (idx * 3.4);
+        const colHeader = new THREE.Mesh(
+          new THREE.BoxGeometry(3, 0.8, 0.05),
+          new THREE.MeshBasicMaterial({ color })
+        );
+        colHeader.position.set(cx, 7.8, -10.3);
+        kanbanGroup.add(colHeader);
+
+        // Sticky notes
+        for (let s = 0; s < 3; s++) {
+          const note = new THREE.Mesh(
+            new THREE.BoxGeometry(2.6, 1.2, 0.04),
+            new THREE.MeshStandardMaterial({ color: idx === 4 ? 0x059669 : 0x1e293b })
+          );
+          note.position.set(cx, 6.2 - (s * 1.5), -10.3);
+          kanbanGroup.add(note);
+        }
+      });
+
+      // Meeting Table in Center of War Room
+      const table = new THREE.Mesh(
+        new THREE.CylinderGeometry(4.2, 4.2, 0.25, 32),
+        new THREE.MeshStandardMaterial({ color: 0x1e2638, roughness: 0.3 })
+      );
+      table.position.set(0, 2.0, 0);
+      table.castShadow = true;
+      kanbanGroup.add(table);
+
+      // Center Base
+      const base = new THREE.Mesh(new THREE.CylinderGeometry(0.6, 1.2, 2.0, 16), new THREE.MeshStandardMaterial({ color: 0x0f172a }));
+      base.position.set(0, 1.0, 0);
+      kanbanGroup.add(base);
+
+      scene.add(kanbanGroup);
+    }
+
+    // 6. Zone 3: Recreation & Break Lounge (Bottom-Right)
+    function buildZone3RecreationLounge() {
+      const loungeGroup = new THREE.Group();
+      loungeGroup.position.set(16, 0, 14);
+      loungeGroup.name = 'Zone_Lounge';
+      loungeGroup.userData = { type: 'lounge', title: 'Recreation & Break Lounge', desc: 'Area rehat dan bermain seluruh agen yang IDLE' };
+
+      // 1. Espresso Bar Counter
+      const bar = new THREE.Mesh(
+        new THREE.BoxGeometry(8, 2.3, 2.2),
+        new THREE.MeshStandardMaterial({ color: 0x2e1d13, roughness: 0.5 })
+      );
+      bar.position.set(-2, 1.15, 6);
+      bar.castShadow = true;
+      loungeGroup.add(bar);
+
+      // Chrome Espresso Machine
+      const machine = new THREE.Mesh(
+        new THREE.BoxGeometry(2.4, 1.4, 1.5),
+        new THREE.MeshStandardMaterial({ color: 0x94a3b8, metalness: 0.9, roughness: 0.1 })
+      );
+      machine.position.set(-2, 2.9, 6);
+      loungeGroup.add(machine);
+
+      // 2. Retro Arcade Machine
+      const arcade = new THREE.Group();
+      arcade.position.set(9, 0, 7);
+      
+      const arcadeBody = new THREE.Mesh(
+        new THREE.BoxGeometry(2.4, 5.5, 2.6),
+        new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.3 })
+      );
+      arcadeBody.position.y = 2.75;
+      arcade.add(arcadeBody);
+
+      const marquee = new THREE.Mesh(
+        new THREE.BoxGeometry(2.2, 0.8, 0.1),
+        new THREE.MeshBasicMaterial({ color: 0xec4899 })
+      );
+      marquee.position.set(0, 5.0, 1.35);
+      arcade.add(marquee);
+
+      const arcadeScreen = new THREE.Mesh(
+        new THREE.BoxGeometry(2.0, 1.6, 0.1),
+        new THREE.MeshBasicMaterial({ color: 0x38bdf8 })
+      );
+      arcadeScreen.position.set(0, 3.6, 1.35);
+      arcade.add(arcadeScreen);
+
+      loungeGroup.add(arcade);
+
+      // 3. Modular L-Sofa
+      const sofaMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.8 });
+      const sofa1 = new THREE.Mesh(new THREE.BoxGeometry(7, 1.2, 2.6), sofaMat);
+      sofa1.position.set(-2, 0.6, -3);
+      loungeGroup.add(sofa1);
+
+      const sofa2 = new THREE.Mesh(new THREE.BoxGeometry(2.6, 1.2, 5), sofaMat);
+      sofa2.position.set(-5.5, 0.6, 0.7);
+      loungeGroup.add(sofa2);
+
+      // Coffee Table in front of Sofa
+      const coffeeTable = new THREE.Mesh(
+        new THREE.CylinderGeometry(2, 2, 0.15, 24),
+        new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.4 })
+      );
+      coffeeTable.position.set(-1.5, 0.7, 0.5);
+      loungeGroup.add(coffeeTable);
+
+      // 4. Fitness Yoga Mat & Dumbbells
+      const mat = new THREE.Mesh(
+        new THREE.BoxGeometry(3, 0.05, 5),
+        new THREE.MeshStandardMaterial({ color: 0x059669 })
+      );
+      mat.position.set(7, 0.03, -3);
+      loungeGroup.add(mat);
+
+      scene.add(loungeGroup);
+    }
+
+    // 7. Zone 4: Automation & Cron Tower (Top-Right)
+    function buildZone4CronTower() {
+      const cronGroup = new THREE.Group();
+      cronGroup.position.set(16, 0, -15);
+      cronGroup.name = 'Zone_Cron';
+      cronGroup.userData = { type: 'cron', title: 'Automation & Cron Tower', desc: 'Scheduler background ticker telemetri (~/.hermes/cron)' };
+
+      // 4 High-Tech Server Racks
+      for (let r = 0; r < 4; r++) {
+        const rx = -5 + (r * 3.4);
+        const rack = new THREE.Mesh(
+          new THREE.BoxGeometry(2.4, 7.5, 2.6),
+          new THREE.MeshStandardMaterial({ color: 0x090d16, roughness: 0.2 })
+        );
+        rack.position.set(rx, 3.75, -6);
+        rack.castShadow = true;
+        cronGroup.add(rack);
+
+        // Blinking LEDs Panels
+        for (let l = 0; l < 4; l++) {
+          const ledMat = new THREE.MeshBasicMaterial({ color: (r + l) % 2 === 0 ? 0x22d3ee : 0x10b981 });
+          const ledStrip = new THREE.Mesh(new THREE.BoxGeometry(2.0, 0.3, 0.05), ledMat);
+          ledStrip.position.set(rx, 2.0 + (l * 1.4), -4.68);
+          cronGroup.add(ledStrip);
+        }
+      }
+
+      // Central Holographic Display Tower
+      const holoDisplay = new THREE.Mesh(
+        new THREE.BoxGeometry(6.5, 4.0, 0.2),
+        new THREE.MeshPhysicalMaterial({
+          color: 0x0284c7,
+          emissive: 0x0369a1,
+          transparent: true,
+          opacity: 0.85,
+          roughness: 0.1
+        })
+      );
+      holoDisplay.position.set(0, 4.5, 1);
+      cronGroup.add(holoDisplay);
+
+      scene.add(cronGroup);
+    }
+
+    // 8. Potted Plants
+    function buildPottedPlants() {
+      const plantSpots = [
+        [-1, 8], [-1, -8], [1, 8], [1, -8],
+        [-27, -2], [27, -2]
+      ];
+
+      plantSpots.forEach(([px, pz]) => {
+        const plantGroup = new THREE.Group();
+        plantGroup.position.set(px, 0, pz);
+
+        // White Ceramic Pot
+        const pot = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.7, 0.5, 1.4, 16),
+          new THREE.MeshStandardMaterial({ color: 0xe2e8f0, roughness: 0.2 })
+        );
+        pot.position.y = 0.7;
+        plantGroup.add(pot);
+
+        // Green Leaves Foliage
+        const foliage = new THREE.Mesh(
+          new THREE.DodecahedronGeometry(1.1, 1),
+          new THREE.MeshStandardMaterial({ color: 0x10b981, roughness: 0.8 })
+        );
+        foliage.position.y = 2.0;
+        plantGroup.add(foliage);
+
+        scene.add(plantGroup);
+      });
+    }
+
+    // 9. Create 3D Stylized Avatar Mesh
+    function createAgentAvatar3D(agent) {
+      const group = new THREE.Group();
+      group.name = `Agent_${agent.id}`;
+      group.userData = { type: 'agent', agentId: agent.id, agentData: agent };
+
+      // Palette
+      const hairColor = agent.avatar?.hair || 0x3b82f6;
+      const shirtColor = agent.avatar?.shirt || 0x1e293b;
+      const skinColor = agent.avatar?.skin || 0xfbd38d;
+
+      // Legs
+      const legGeo = new THREE.CylinderGeometry(0.18, 0.18, 1.2);
+      const legMat = new THREE.MeshStandardMaterial({ color: 0x0f172a });
+      const leftLeg = new THREE.Mesh(legGeo, legMat);
+      leftLeg.position.set(-0.3, 0.6, 0);
+      group.add(leftLeg);
+
+      const rightLeg = new THREE.Mesh(legGeo, legMat);
+      rightLeg.position.set(0.3, 0.6, 0);
+      group.add(rightLeg);
+
+      // Torso / Suit Jacket
+      const bodyGeo = new THREE.BoxGeometry(1.2, 1.4, 0.8);
+      const bodyMat = new THREE.MeshStandardMaterial({ color: shirtColor, roughness: 0.6 });
+      const body = new THREE.Mesh(bodyGeo, bodyMat);
+      body.position.y = 1.8;
+      body.castShadow = true;
+      group.add(body);
+
+      // Head
+      const headGeo = new THREE.BoxGeometry(0.9, 0.9, 0.8);
+      const headMat = new THREE.MeshStandardMaterial({ color: skinColor, roughness: 0.5 });
+      const head = new THREE.Mesh(headGeo, headMat);
+      head.position.y = 2.9;
+      group.add(head);
+
+      // Hair
+      const hairGeo = new THREE.BoxGeometry(1.0, 0.45, 0.9);
+      const hairMat = new THREE.MeshStandardMaterial({ color: hairColor, roughness: 0.7 });
+      const hair = new THREE.Mesh(hairGeo, hairMat);
+      hair.position.y = 3.35;
+      group.add(hair);
+
+      // Crown if CEO (Fauzi)
+      if (agent.id === 'ceo') {
+        const crownGeo = new THREE.ConeGeometry(0.4, 0.5, 5);
+        const crownMat = new THREE.MeshStandardMaterial({ color: 0xfacc15, metalness: 0.8, roughness: 0.2 });
+        const crown = new THREE.Mesh(crownGeo, crownMat);
+        crown.position.y = 3.8;
+        group.add(crown);
+      }
+
+      // Overhead Floating Indicator Gem (Green = Working, Amber = Idle)
+      const gemGeo = new THREE.OctahedronGeometry(0.3, 0);
+      const gemMat = new THREE.MeshBasicMaterial({ color: agent.state === 'WORKING' ? 0x10b981 : 0xf59e0b });
+      const gem = new THREE.Mesh(gemGeo, gemMat);
+      gem.position.y = 4.2;
+      gem.name = 'statusGem';
+      group.add(gem);
+
+      scene.add(group);
+      return group;
+    }
+
+    // 10. Fetch Live Telemetry from /api/telemetry
+    async function fetchTelemetry() {
+      try {
+        const res = await fetch('/api/telemetry');
+        const data = await res.json();
+        if (data.success && data.agents) {
+          telemetryData = data;
+          updateHUD(data);
+          syncAgents3D(data.agents);
+        }
+      } catch (err) {
+        console.error('Telemetry fetch error:', err);
+      }
+    }
+
+    function updateHUD(data) {
+      document.getElementById('badgeWorkingCount').innerText = data.summary.workingCount;
+      document.getElementById('badgeIdleCount').innerText = data.summary.idleCount;
+      document.getElementById('badgeKanbanSummary').innerText = `Kanban: ${data.kanban.done} Selesai${data.kanban.in_progress > 0 ? ` (${data.kanban.in_progress} In Prog)` : ''}`;
+      document.getElementById('badgeCronStatus').innerText = `Cron: ${data.cron.schedulerStatus}`;
+      document.getElementById('syncTimestamp').innerText = `Sync ${new Date().toLocaleTimeString('id-ID')}`;
+
+      // Render agent tabs
+      const tabsEl = document.getElementById('agentQuickTabs');
+      tabsEl.innerHTML = data.agents.map(a => `
+        <button 
+          onclick="window.focusOnAgent3D('${a.id}')"
+          class="px-3 py-1.5 rounded-xl border text-xs font-mono flex items-center gap-2 transition-all cursor-pointer ${
+            a.state === 'WORKING' 
+              ? 'bg-emerald-500/10 border-emerald-500/40 text-emerald-300 shadow-sm shadow-emerald-950/30' 
+              : 'bg-slate-900 border-slate-800 text-slate-300 hover:border-slate-700'
+          }"
+          title="Klik untuk menyorot kamera 3D ke ${a.name}"
+        >
+          <span class="h-2 w-2 rounded-full ${a.state === 'WORKING' ? 'bg-emerald-400 animate-pulse' : 'bg-slate-500'}"></span>
+          <span class="font-medium">${a.name}</span>
+        </button>
+      `).join('');
+    }
+
+    // 3D Spatial Position Mapping
+    const DESK_3D_POSITIONS = {
+      'default': new THREE.Vector3(-18, 0, 9.5),
+      'agent-d': new THREE.Vector3(-8, 0, 9.5),
+      'agent-a': new THREE.Vector3(-22, 0, 19.5),
+      'agent-b': new THREE.Vector3(-12, 0, 19.5),
+      'agent-c': new THREE.Vector3(-2, 0, 19.5)
+    };
+
+    const LOUNGE_3D_POSITIONS = {
+      'default': new THREE.Vector3(14, 0, 17), // Coffee Bar
+      'agent-d': new THREE.Vector3(25, 0, 21), // Arcade
+      'agent-a': new THREE.Vector3(23, 0, 11), // Gym Mat
+      'agent-b': new THREE.Vector3(14, 0, 11), // Sofa
+      'agent-c': new THREE.Vector3(10, 0, 15)  // Coffee Table
+    };
+
+    function syncAgents3D(serverAgents) {
+      serverAgents.forEach(sa => {
+        let entry = agentMeshes[sa.id];
+        const targetPos = sa.state === 'WORKING' ? DESK_3D_POSITIONS[sa.id] : LOUNGE_3D_POSITIONS[sa.id];
+
+        if (!entry) {
+          const mesh = createAgentAvatar3D(sa);
+          mesh.position.copy(targetPos);
+          agentMeshes[sa.id] = {
+            mesh,
+            data: sa,
+            targetPos: targetPos.clone(),
+            working: sa.state === 'WORKING'
+          };
+        } else {
+          entry.data = sa;
+          entry.targetPos.copy(targetPos);
+          entry.working = sa.state === 'WORKING';
+
+          // Update Gem Color
+          const gem = entry.mesh.getObjectByName('statusGem');
+          if (gem) {
+            gem.material.color.setHex(sa.state === 'WORKING' ? 0x10b981 : 0xf59e0b);
+          }
+        }
+      });
+    }
+
+    // Camera Focus on Specific Agent
+    window.focusOnAgent3D = function(agentId) {
+      const entry = agentMeshes[agentId];
+      if (entry) {
+        targetLookAt = entry.mesh.position.clone().add(new THREE.Vector3(0, 2, 0));
+        targetCameraPos = entry.mesh.position.clone().add(new THREE.Vector3(10, 8, 12));
+        openAgentChat(agentId);
+      }
+    };
+
+    function resetCameraView() {
+      targetCameraPos = new THREE.Vector3(38, 32, 42);
+      targetLookAt = new THREE.Vector3(0, 0, 0);
+    }
+
+    // Animation & Render Loop
+    let clock = new THREE.Clock();
+    function animate() {
+      requestAnimationFrame(animate);
+      const delta = clock.getDelta();
+      const time = clock.getElapsedTime();
+
+      // Smooth Agent Movement Interpolation (Lerp)
+      Object.values(agentMeshes).forEach(entry => {
+        entry.mesh.position.lerp(entry.targetPos, 0.05);
+
+        // Gem Hover Animation
+        const gem = entry.mesh.getObjectByName('statusGem');
+        if (gem) {
+          gem.rotation.y += 0.03;
+          gem.position.y = 4.2 + Math.sin(time * 3) * 0.15;
+        }
+
+        // Slight breathing animation if idle
+        if (!entry.working) {
+          entry.mesh.position.y = Math.sin(time * 2 + entry.mesh.position.x) * 0.04;
+        }
+      });
+
+      // Smooth Camera Transitions
+      if (targetCameraPos && targetLookAt) {
+        camera.position.lerp(targetCameraPos, 0.05);
+        controls.target.lerp(targetLookAt, 0.05);
+        if (camera.position.distanceTo(targetCameraPos) < 0.2) {
+          targetCameraPos = null;
+          targetLookAt = null;
+        }
+      }
+
+      controls.update();
+      renderer.render(scene, camera);
+    }
+
+    // Window Resize
+    function onWindowResize() {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    }
+
+    // Mouse Move & Raycast Hover
+    const tooltip = document.getElementById('objectTooltip');
+    const tooltipTitle = document.getElementById('tooltipTitle');
+    const tooltipSub = document.getElementById('tooltipSub');
+
+    function onMouseMove(event) {
+      mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+      mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+      raycaster.setFromCamera(mouse, camera);
+      const intersects = raycaster.intersectObjects(scene.children, true);
+
+      let found = null;
+      for (let hit of intersects) {
+        let cur = hit.object;
+        while (cur && cur !== scene) {
+          if (cur.userData && cur.userData.type) {
+            found = cur;
+            break;
+          }
+          cur = cur.parent;
+        }
+        if (found) break;
+      }
+
+      if (found) {
+        const u = found.userData;
+        tooltip.style.left = `${event.clientX}px`;
+        tooltip.style.top = `${event.clientY - 15}px`;
+
+        if (u.type === 'agent') {
+          tooltipTitle.innerHTML = `<span>🤖</span> ${u.agentData.name}`;
+          tooltipSub.innerText = u.agentData.state === 'WORKING' ? `⚡ ${u.agentData.activityText}` : `☕ ${u.agentData.activityText}`;
+        } else if (u.type === 'kanban') {
+          tooltipTitle.innerHTML = `<span>📋</span> ${u.title}`;
+          tooltipSub.innerText = u.desc;
+        } else if (u.type === 'cron') {
+          tooltipTitle.innerHTML = `<span>⏰</span> ${u.title}`;
+          tooltipSub.innerText = u.desc;
+        } else if (u.type === 'lounge') {
+          tooltipTitle.innerHTML = `<span>☕</span> ${u.title}`;
+          tooltipSub.innerText = u.desc;
+        } else if (u.type === 'desk') {
+          tooltipTitle.innerHTML = `<span>💻</span> Meja Kerja ${u.name}`;
+          tooltipSub.innerText = 'Pod kerja insinyur';
+        }
+
+        tooltip.classList.remove('hidden');
+        canvas.style.cursor = 'pointer';
+      } else {
+        tooltip.classList.add('hidden');
+        canvas.style.cursor = 'grab';
+      }
+    }
+
+    // Canvas Click Interactions
+    function onCanvasClick(event) {
+      mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+      mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+      raycaster.setFromCamera(mouse, camera);
+      const intersects = raycaster.intersectObjects(scene.children, true);
+
+      for (let hit of intersects) {
+        let cur = hit.object;
+        while (cur && cur !== scene) {
+          if (cur.userData && cur.userData.type) {
+            const u = cur.userData;
+            if (u.type === 'agent') {
+              window.focusOnAgent3D(u.agentId);
+              return;
+            } else if (u.type === 'kanban') {
+              openKanbanModal();
+              return;
+            } else if (u.type === 'cron') {
+              openCronModal();
+              return;
+            }
+          }
+          cur = cur.parent;
+        }
+      }
+    }
+
+    // Modals & Chat Drawer Functions
+    window.closeOnBackdrop = function(e, modalId) {
+      if (e.target.id === modalId) {
+        document.getElementById(modalId).classList.add('hidden');
+      }
+    };
+
+    window.openKanbanModal = async function() {
+      document.getElementById('kanbanModal').classList.remove('hidden');
+      const listEl = document.getElementById('kanbanTasksList');
+      listEl.innerHTML = '<div class="text-center text-slate-500 py-8 font-mono text-xs">Memuat tugas kanban...</div>';
+
+      try {
+        const res = await fetch('/api/kanban');
+        const data = await res.json();
+        if (data.success && data.recentTasks) {
+          listEl.innerHTML = data.recentTasks.map(t => `
+            <div class="p-3.5 bg-slate-900/80 border border-slate-800 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 font-mono">
+              <div>
+                <div class="flex items-center gap-2">
+                  <span class="text-indigo-400 font-bold text-xs">${t.id}</span>
+                  <span class="text-white text-xs font-semibold font-sans">${t.title}</span>
+                </div>
+                <p class="text-[11px] text-slate-400 mt-1 font-sans">${t.body || 'Tidak ada deskripsi tambahan.'}</p>
+              </div>
+              <div class="flex items-center gap-2 shrink-0">
+                <span class="px-2.5 py-1 rounded-lg text-[10px] bg-indigo-500/10 text-indigo-300 border border-indigo-500/30">
+                  ${t.assignee || 'default'}
+                </span>
+                <span class="px-2.5 py-1 rounded-lg text-[10px] ${
+                  t.status === 'done' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 font-bold' : 'bg-amber-500/10 text-amber-400 border border-amber-500/30'
+                }">
+                  ${t.status.toUpperCase()}
+                </span>
+              </div>
+            </div>
+          `).join('');
+        }
+      } catch (err) {
+        listEl.innerHTML = `<div class="text-rose-400 text-center py-6 font-mono">Gagal memuat: ${err.message}</div>`;
+      }
+    };
+    window.closeKanbanModal = function() { document.getElementById('kanbanModal').classList.add('hidden'); };
+
+    window.openCronModal = async function() {
+      document.getElementById('cronModal').classList.remove('hidden');
+      const contentEl = document.getElementById('cronContent');
+      contentEl.innerHTML = '<div class="text-center text-slate-500 py-8 font-mono">Memeriksa status scheduler...</div>';
+
+      try {
+        const res = await fetch('/api/cron');
+        const data = await res.json();
+        if (data.success) {
+          contentEl.innerHTML = `
+            <div class="p-5 bg-slate-900/80 border border-slate-800 rounded-2xl space-y-3 font-mono">
+              <div class="flex items-center justify-between">
+                <span class="text-slate-400">Scheduler Engine Status:</span>
+                <span class="font-bold text-emerald-400">${data.schedulerStatus}</span>
+              </div>
+              <div class="flex items-center justify-between">
+                <span class="text-slate-400">Detak Heartbeat Terakhir:</span>
+                <span class="text-slate-200">${data.lastHeartbeatAgoSec !== null ? data.lastHeartbeatAgoSec + ' detik yang lalu' : 'Aktif'}</span>
+              </div>
+              <div class="flex items-center justify-between">
+                <span class="text-slate-400">Direktori Host:</span>
+                <span class="text-slate-400 text-[10px]">${data.cronDir}</span>
+              </div>
+            </div>
+            <div class="p-5 bg-slate-900/60 border border-slate-800 rounded-2xl font-sans">
+              <h4 class="font-bold text-cyan-300 text-xs mb-2">Automasi Terjadwal Harian:</h4>
+              <p class="text-slate-300 text-xs leading-relaxed">
+                ⏰ <strong>08:30 WIB</strong> — Morning Briefing & Radar Intelligence Digest (Dikirim otomatis ke Telegram Mas Fauzi via <code>@my_kagura_bot</code>).
+              </p>
+            </div>
+          `;
+        }
+      } catch (err) {
+        contentEl.innerHTML = `<div class="text-rose-400 text-center py-6 font-mono">Gagal memuat: ${err.message}</div>`;
+      }
+    };
+    window.closeCronModal = function() { document.getElementById('cronModal').classList.add('hidden'); };
+
+    window.openAgentChat = function(agentId) {
+      const entry = agentMeshes[agentId];
+      if (!entry) return;
+      selectedAgent = entry.data;
+
+      document.getElementById('chatAgentName').innerText = selectedAgent.name;
+      document.getElementById('chatAgentRole').innerText = selectedAgent.role;
+      document.getElementById('chatAgentBadge').innerText = selectedAgent.profile;
+      document.getElementById('chatAgentStatus').innerText = selectedAgent.state;
+      document.getElementById('chatAgentStatus').className = selectedAgent.state === 'WORKING' ? 'font-bold text-emerald-400' : 'font-bold text-amber-400';
+      document.getElementById('chatAgentZone').innerText = selectedAgent.targetZone === 'WORKSTATION' ? 'Zona 1: Meja Kerja 3D' : 'Zona 3: Lounge & Rehat 3D';
+      document.getElementById('chatAgentActivity').innerText = selectedAgent.activityText;
+      document.getElementById('chatAgentTelegram').innerText = selectedAgent.telegram;
+
+      document.getElementById('chatDrawer').classList.remove('translate-x-full');
+      document.getElementById('chatBackdrop').classList.remove('hidden');
+    };
+    window.closeChatDrawer = function() {
+      document.getElementById('chatDrawer').classList.add('translate-x-full');
+      document.getElementById('chatBackdrop').classList.add('hidden');
+    };
+
+    window.handleSendMessage = async function(e) {
+      if (e) e.preventDefault();
+      const inputEl = document.getElementById('chatInput');
+      const text = inputEl.value.trim();
+      if (!text || !selectedAgent) return;
+
+      inputEl.value = '';
+      appendMessage('user', text);
+
+      const typingEl = document.getElementById('typingIndicator');
+      typingEl.classList.remove('hidden');
+
+      try {
+        const res = await fetch('/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            profile: selectedAgent.profile,
+            message: text
+          })
+        });
+        const data = await res.json();
+        typingEl.classList.add('hidden');
+        if (data.success && data.reply) {
+          appendMessage('agent', data.reply);
+        } else {
+          appendMessage('agent', `⚠️ Error: ${data.error || 'Gagal memproses pesan'}`);
+        }
+      } catch (err) {
+        typingEl.classList.add('hidden');
+        appendMessage('agent', `⚠️ Gagal koneksi: ${err.message}`);
+      }
+    };
+
+    function appendMessage(role, text) {
+      const messagesEl = document.getElementById('chatMessages');
+      const isUser = role === 'user';
+      const row = document.createElement('div');
+      row.className = isUser ? 'flex justify-end' : 'flex gap-3 items-start';
+
+      if (isUser) {
+        row.innerHTML = `
+          <div class="max-w-[85%] bg-indigo-600 text-white rounded-2xl rounded-tr-sm p-3.5 text-xs leading-relaxed font-sans shadow-md">
+            ${text}
+          </div>
+        `;
+      } else {
+        row.innerHTML = `
+          <div class="h-8 w-8 rounded-xl bg-indigo-600/20 border border-indigo-500/40 flex items-center justify-center text-xs shrink-0 text-indigo-400 font-bold">
+            🤖
+          </div>
+          <div class="flex-1 bg-slate-900 border border-slate-800 rounded-2xl rounded-tl-sm p-4 text-slate-200 text-xs leading-relaxed font-sans shadow-sm">
+            ${text}
+          </div>
+        `;
+      }
+      messagesEl.appendChild(row);
+      messagesEl.scrollTop = messagesEl.scrollHeight;
+    }
+
+    window.handleGlobalLogout = async function() {
+      if (!confirm('Apakah Anda ingin keluar dari seluruh ekosistem aplikasi enterprise?')) return;
+      try {
+        await fetch('/api/auth/logout', { method: 'POST' });
+        window.location.href = '/login';
+      } catch (e) {
+        window.location.href = '/login';
+      }
+    };
+
+    // Initialize Scene on DOM Ready
+    window.addEventListener('DOMContentLoaded', () => {
+      init3D();
+      fetchTelemetry();
+      setInterval(fetchTelemetry, 3000); // 3-second live sync
+    });
+  </script>
+</body>
+</html>
